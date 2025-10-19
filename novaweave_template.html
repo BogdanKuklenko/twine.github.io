@@ -1,0 +1,1323 @@
+diff --git a/novaweave_template.html b/novaweave_template.html
+new file mode 100644
+index 0000000000000000000000000000000000000000..dba3f9d76a5009cc25e8853c7bd688fbf1f1f346
+--- /dev/null
++++ b/novaweave_template.html
+@@ -0,0 +1,1316 @@
++<!DOCTYPE html>
++<html lang="ru">
++<head>
++<meta charset="utf-8">
++<title>{{STORY_NAME}}</title>
++<meta name="viewport" content="width=device-width, initial-scale=1">
++<style>
++  :root {
++    color-scheme: dark;
++    --nw-bg: radial-gradient(circle at top, #070b1c 0%, #05060d 60%, #02030a 100%);
++    --nw-panel-bg: rgba(14, 22, 42, 0.85);
++    --nw-panel-border: rgba(121, 162, 255, 0.35);
++    --nw-text: #f4f8ff;
++    --nw-muted: rgba(215, 229, 255, 0.68);
++    --nw-accent: #89c7ff;
++    --nw-accent-strong: #ffd166;
++    --nw-danger: #ff6b6b;
++    --nw-success: #59f2c8;
++    --nw-mono: 'Fira Code', 'JetBrains Mono', Consolas, monospace;
++    --nw-serif: 'Merriweather', 'Georgia', serif;
++    --nw-transition: 240ms cubic-bezier(0.33, 1, 0.68, 1);
++  }
++
++  body.nw-body {
++    margin: 0;
++    min-height: 100vh;
++    background: var(--nw-bg);
++    color: var(--nw-text);
++    font-family: "Inter", "Segoe UI", "SF Pro Display", sans-serif;
++    display: flex;
++    justify-content: center;
++    align-items: stretch;
++    padding: 2.5rem 1.5rem 3rem;
++    box-sizing: border-box;
++  }
++
++  .nw-app {
++    display: grid;
++    grid-template-columns: minmax(0, 1fr);
++    grid-template-rows: auto auto 1fr;
++    gap: 1.25rem;
++    width: min(64rem, 100%);
++    background: var(--nw-panel-bg);
++    border: 1px solid var(--nw-panel-border);
++    border-radius: 1.5rem;
++    padding: 1.75rem 2rem 2.25rem;
++    box-shadow: 0 28px 55px rgba(0, 0, 0, 0.45);
++    backdrop-filter: blur(16px);
++    position: relative;
++  }
++
++  .nw-header {
++    display: flex;
++    justify-content: space-between;
++    align-items: center;
++    gap: 1.5rem;
++  }
++
++  .nw-title {
++    font-family: var(--nw-serif);
++    font-size: clamp(1.5rem, 3vw, 2.3rem);
++    letter-spacing: 0.08em;
++    text-transform: uppercase;
++    color: var(--nw-accent);
++    text-shadow: 0 0 22px rgba(137, 199, 255, 0.55);
++  }
++
++  .nw-controls {
++    display: flex;
++    flex-wrap: wrap;
++    gap: 0.6rem;
++  }
++
++  .nw-button {
++    background: rgba(16, 30, 58, 0.85);
++    color: var(--nw-text);
++    border: 1px solid rgba(137, 199, 255, 0.35);
++    border-radius: 999px;
++    padding: 0.45rem 1.1rem;
++    font-size: 0.85rem;
++    letter-spacing: 0.04em;
++    text-transform: uppercase;
++    cursor: pointer;
++    transition: transform var(--nw-transition), background var(--nw-transition), border-color var(--nw-transition);
++  }
++
++  .nw-button:hover,
++  .nw-button:focus-visible {
++    outline: none;
++    background: rgba(137, 199, 255, 0.2);
++    border-color: rgba(137, 199, 255, 0.65);
++    transform: translateY(-1px);
++  }
++
++  .nw-button[data-active="true"] {
++    background: rgba(137, 199, 255, 0.35);
++    border-color: rgba(137, 199, 255, 0.85);
++    color: #0c101c;
++  }
++
++  .nw-panels {
++    display: grid;
++    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
++    gap: 1rem;
++  }
++
++  .nw-panel {
++    background: rgba(5, 9, 22, 0.78);
++    border: 1px solid rgba(255, 255, 255, 0.05);
++    border-radius: 1.1rem;
++    padding: 1rem 1.1rem 1.2rem;
++    max-height: 14.5rem;
++    overflow: auto;
++    transition: opacity var(--nw-transition), transform var(--nw-transition);
++  }
++
++  .nw-panel[hidden] {
++    display: none;
++  }
++
++  .nw-panel h2 {
++    margin-top: 0;
++    margin-bottom: 0.75rem;
++    font-size: 0.95rem;
++    letter-spacing: 0.08em;
++    text-transform: uppercase;
++    color: var(--nw-muted);
++  }
++
++  .nw-main {
++    background: rgba(7, 12, 28, 0.92);
++    border: 1px solid rgba(137, 199, 255, 0.25);
++    border-radius: 1.2rem;
++    padding: clamp(1.5rem, 3vw, 2.4rem);
++    min-height: 18rem;
++    box-shadow: inset 0 0 25px rgba(0, 0, 0, 0.25);
++    position: relative;
++    overflow: hidden;
++  }
++
++  .nw-passage {
++    animation: nw-fade-in 420ms ease;
++  }
++
++  @keyframes nw-fade-in {
++    from { opacity: 0; transform: translateY(6px); }
++    to { opacity: 1; transform: translateY(0); }
++  }
++
++  .nw-passage p {
++    line-height: 1.75;
++    margin-top: 0;
++    margin-bottom: 1.2rem;
++  }
++
++  .nw-passage p:last-child {
++    margin-bottom: 0;
++  }
++
++  .nw-link,
++  .nw-choice {
++    color: var(--nw-accent-strong);
++    font-weight: 600;
++    border-bottom: 1px dashed rgba(255, 209, 102, 0.45);
++    cursor: pointer;
++    transition: color var(--nw-transition), border-color var(--nw-transition);
++    text-decoration: none;
++  }
++
++  .nw-choice {
++    background: transparent;
++    border: none;
++    padding: 0;
++    font: inherit;
++  }
++
++  .nw-link:hover,
++  .nw-choice:hover,
++  .nw-link:focus-visible,
++  .nw-choice:focus-visible {
++    color: var(--nw-success);
++    border-bottom-color: rgba(89, 242, 200, 0.55);
++    outline: none;
++  }
++
++  .nw-history-entry {
++    border-bottom: 1px solid rgba(137, 199, 255, 0.15);
++    padding: 0.35rem 0 0.55rem;
++  }
++
++  .nw-history-entry:last-child {
++    border-bottom: none;
++  }
++
++  .nw-history-entry time {
++    font-size: 0.78rem;
++    color: var(--nw-muted);
++  }
++
++  .nw-note {
++    margin-top: 0.4rem;
++    padding-left: 0.75rem;
++    border-left: 2px solid rgba(137, 199, 255, 0.3);
++    font-style: italic;
++    font-size: 0.85rem;
++  }
++
++  .nw-tag {
++    display: inline-flex;
++    align-items: center;
++    justify-content: center;
++    padding: 0.1rem 0.45rem;
++    margin-right: 0.35rem;
++    border-radius: 999px;
++    background: rgba(137, 199, 255, 0.18);
++    border: 1px solid rgba(137, 199, 255, 0.35);
++    font-size: 0.72rem;
++    letter-spacing: 0.06em;
++    text-transform: uppercase;
++    color: var(--nw-muted);
++  }
++
++  .nw-state-entry {
++    display: flex;
++    justify-content: space-between;
++    gap: 0.75rem;
++    font-family: var(--nw-mono);
++    font-size: 0.85rem;
++    padding: 0.25rem 0;
++    border-bottom: 1px dotted rgba(137, 199, 255, 0.15);
++  }
++
++  .nw-state-entry:last-child {
++    border-bottom: none;
++  }
++
++  .nw-meter {
++    margin: 0.9rem 0 1.1rem;
++  }
++
++  .nw-meter-label {
++    display: flex;
++    justify-content: space-between;
++    font-size: 0.82rem;
++    letter-spacing: 0.05em;
++    text-transform: uppercase;
++    color: var(--nw-muted);
++    margin-bottom: 0.35rem;
++  }
++
++  .nw-meter-bar {
++    position: relative;
++    height: 0.55rem;
++    border-radius: 999px;
++    overflow: hidden;
++    background: rgba(137, 199, 255, 0.15);
++  }
++
++  .nw-meter-fill {
++    position: absolute;
++    inset: 0;
++    border-radius: inherit;
++    background: var(--nw-meter-accent, linear-gradient(90deg, rgba(137, 199, 255, 0.75), rgba(255, 209, 102, 0.65)));
++    transition: width 320ms ease;
++  }
++
++  .nw-loader {
++    display: flex;
++    flex-direction: column;
++    align-items: center;
++    justify-content: center;
++    gap: 1rem;
++    color: var(--nw-muted);
++    font-size: 0.95rem;
++    letter-spacing: 0.08em;
++    text-transform: uppercase;
++  }
++
++  .nw-spinner {
++    width: 3.5rem;
++    height: 3.5rem;
++    border-radius: 50%;
++    border: 3px solid rgba(137, 199, 255, 0.18);
++    border-top-color: rgba(255, 209, 102, 0.85);
++    animation: nw-spin 1s linear infinite;
++  }
++
++  @keyframes nw-spin {
++    to { transform: rotate(360deg); }
++  }
++
++  body[data-passage-tags~="danger"] .nw-main {
++    box-shadow: inset 0 0 28px rgba(255, 107, 107, 0.25);
++  }
++
++  body[data-passage-tags~="calm"] .nw-main {
++    box-shadow: inset 0 0 28px rgba(89, 242, 200, 0.25);
++  }
++
++  .nw-warning {
++    border: 1px solid rgba(255, 209, 102, 0.45);
++    background: rgba(255, 209, 102, 0.12);
++    color: #fef6d8;
++    padding: 0.75rem 1rem;
++    border-radius: 0.75rem;
++    margin: 1rem 0;
++  }
++
++  .nw-log-line {
++    font-family: var(--nw-mono);
++    font-size: 0.78rem;
++    padding: 0.2rem 0;
++    border-bottom: 1px dotted rgba(137, 199, 255, 0.15);
++  }
++
++  .nw-empty {
++    font-size: 0.85rem;
++    color: var(--nw-muted);
++    font-style: italic;
++  }
++
++  @media (max-width: 960px) {
++    body.nw-body {
++      padding: 1.5rem;
++    }
++
++    .nw-app {
++      padding: 1.25rem 1.4rem 1.75rem;
++    }
++
++    .nw-panels {
++      grid-template-columns: 1fr;
++    }
++  }
++
++  @media (prefers-reduced-motion: reduce) {
++    *, *::before, *::after {
++      animation-duration: 0.01ms !important;
++      animation-iteration-count: 1 !important;
++      transition-duration: 0.01ms !important;
++      scroll-behavior: auto !important;
++    }
++  }
++</style>
++<style id="story-user-style">
++{{STORY_STYLESHEET}}
++</style>
++</head>
++<body class="nw-body">
++<div id="nova-app" class="nw-app" hidden>
++  <header class="nw-header">
++    <div class="nw-title"></div>
++    <div class="nw-controls">
++      <button class="nw-button" data-panel="history">Хроника</button>
++      <button class="nw-button" data-panel="state">Переменные</button>
++      <button class="nw-button" data-panel="log">Журнал</button>
++      <button class="nw-button" data-action="restart">Сброс</button>
++    </div>
++  </header>
++  <section class="nw-panels">
++    <div class="nw-panel" data-panel-name="history" hidden>
++      <h2>Ход истории</h2>
++      <div class="nw-history"></div>
++    </div>
++    <div class="nw-panel" data-panel-name="state" hidden>
++      <h2>Переменные</h2>
++      <div class="nw-state"></div>
++    </div>
++    <div class="nw-panel" data-panel-name="log" hidden>
++      <h2>Системный журнал</h2>
++      <div class="nw-log"></div>
++    </div>
++  </section>
++  <main id="nova-main" class="nw-main"></main>
++</div>
++<div id="nova-loader" class="nw-loader">
++  <div class="nw-spinner"></div>
++  <p>Инициализация NovaWeave...</p>
++</div>
++{{STORY_DATA}}
++<script>
++(() => {
++  "use strict";
++
++  function escapeHtml(value) {
++    return String(value)
++      .replace(/&/g, "&amp;")
++      .replace(/</g, "&lt;")
++      .replace(/>/g, "&gt;")
++      .replace(/"/g, "&quot;")
++      .replace(/'/g, "&#39;");
++  }
++
++  const BACKTICK = String.fromCharCode(96);
++
++  function escapeAttribute(value) {
++    return escapeHtml(value).split(BACKTICK).join("&#96;");
++  }
++
++  function safeString(value) {
++    if (value === null || value === undefined) {
++      return "";
++    }
++    if (typeof value === "number" && !Number.isFinite(value)) {
++      return "";
++    }
++    return String(value);
++  }
++
++  const storyElement = document.querySelector("tw-storydata");
++  if (!storyElement) {
++    console.error("[NovaWeave] Не найден элемент tw-storydata.");
++    return;
++  }
++
++  const app = document.getElementById("nova-app");
++  const main = document.getElementById("nova-main");
++  const loader = document.getElementById("nova-loader");
++  const titleElement = app.querySelector(".nw-title");
++  const historyContainer = app.querySelector(".nw-history");
++  const stateContainer = app.querySelector(".nw-state");
++  const logContainer = app.querySelector(".nw-log");
++
++  const storyName = storyElement.getAttribute("name") || "Twine Story";
++  const ifid = storyElement.getAttribute("ifid") || "IFID-UNKNOWN";
++  const startNodeId = storyElement.getAttribute("startnode");
++  const formatName = storyElement.getAttribute("format") || "unknown";
++  const formatVersion = storyElement.getAttribute("format-version") || "0";
++
++  document.title = storyName;
++  titleElement.textContent = storyName;
++
++  const rawPassages = Array.from(storyElement.querySelectorAll("tw-passagedata"));
++  const idToName = new Map();
++  rawPassages.forEach(p => {
++    idToName.set(p.getAttribute("pid"), p.getAttribute("name"));
++  });
++  const startPassageName = idToName.get(startNodeId);
++
++  const storageKey = `NovaWeave::${ifid}`;
++  const rawVars = Object.create(null);
++  const state = {
++    current: null,
++    history: [],
++    notesPerPassage: new Map(),
++    metadata: {
++      name: storyName,
++      ifid,
++      formatName,
++      formatVersion,
++      totalPassages: rawPassages.length
++    },
++    get vars() {
++      return varsProxy;
++    }
++  };
++
++  let persistHandle = null;
++  function schedulePersist() {
++    if (persistHandle !== null) {
++      return;
++    }
++    const scheduler = window.requestAnimationFrame || (callback => setTimeout(callback, 16));
++    persistHandle = scheduler(() => {
++      persistHandle = null;
++      persistState();
++    });
++  }
++
++  function cloneLocals(locals) {
++    const result = Object.create(null);
++    let source = locals;
++    while (source) {
++      Object.getOwnPropertyNames(source).forEach(key => {
++        if (!(key in result)) {
++          result[key] = source[key];
++        }
++      });
++      source = Object.getPrototypeOf(source);
++    }
++    return result;
++  }
++
++  const varsProxy = new Proxy(rawVars, {
++    set(target, prop, value) {
++      target[prop] = value;
++      renderStatePanel();
++      schedulePersist();
++      return true;
++    },
++    deleteProperty(target, prop) {
++      delete target[prop];
++      renderStatePanel();
++      schedulePersist();
++      return true;
++    }
++  });
++
++  const logLines = [];
++  function pushLog(message) {
++    const stamp = new Date().toLocaleTimeString();
++    const entry = `[${stamp}] ${message}`;
++    logLines.push(entry);
++    if (logLines.length > 240) {
++      logLines.shift();
++    }
++    renderLog();
++    console.info("[NovaWeave]", message);
++  }
++
++  function renderLog() {
++    if (!logContainer) {
++      return;
++    }
++    if (!logLines.length) {
++      logContainer.innerHTML = '<p class="nw-empty">Журнал пуст.</p>';
++      return;
++    }
++    logContainer.innerHTML = logLines
++      .map(line => `<div class="nw-log-line">${escapeHtml(line)}</div>`)
++      .join("");
++  }
++
++  const util = {
++    random(min = 0, max = 1, step = 1) {
++      if (max < min) {
++        [min, max] = [max, min];
++      }
++      const steps = Math.floor((max - min) / step);
++      const value = min + Math.floor(Math.random() * (steps + 1)) * step;
++      return Number(value.toFixed(12));
++    },
++    pick(collection) {
++      if (!collection) {
++        return null;
++      }
++      const arr = Array.isArray(collection) ? collection : Object.values(collection);
++      if (!arr.length) {
++        return null;
++      }
++      return arr[Math.floor(Math.random() * arr.length)];
++    },
++    clamp(value, min, max) {
++      return Math.min(Math.max(value, min), max);
++    },
++    now() {
++      return Date.now();
++    },
++    iso(timestamp = Date.now()) {
++      return new Date(timestamp).toISOString();
++    },
++    time(timestamp = Date.now()) {
++      return new Date(timestamp).toLocaleTimeString();
++    },
++    date(timestamp = Date.now()) {
++      return new Date(timestamp).toLocaleDateString();
++    },
++    capitalize(text = "") {
++      return safeString(text).replace(/^(.)/, (m, ch) => ch.toUpperCase());
++    },
++    words(text = "") {
++      return safeString(text).trim().split(/\s+/);
++    }
++  };
++
++  let compiledPassages = new Map();
++  let paletteKeys = new Set();
++
++  function tokenize(content) {
++    const tokens = [];
++    let index = 0;
++    while (index < content.length) {
++      const macroStart = content.indexOf("<<", index);
++      if (macroStart === -1) {
++        tokens.push({ type: "text", value: content.slice(index) });
++        break;
++      }
++      if (macroStart > index) {
++        tokens.push({ type: "text", value: content.slice(index, macroStart) });
++      }
++      let depth = 1;
++      let searchIndex = macroStart + 2;
++      let macroEnd = -1;
++      while (searchIndex < content.length) {
++        const closeIndex = content.indexOf(">>", searchIndex);
++        if (closeIndex === -1) {
++          break;
++        }
++        macroEnd = closeIndex;
++        break;
++      }
++      if (macroEnd === -1) {
++        tokens.push({ type: "text", value: content.slice(macroStart) });
++        break;
++      }
++      const macroBody = content.slice(macroStart + 2, macroEnd).trim();
++      tokens.push({ type: "macro", value: macroBody });
++      index = macroEnd + 2;
++    }
++    return tokens;
++  }
++
++  function parseTokens(tokens) {
++    const root = { type: "root", children: [] };
++    const stack = [{ node: root, children: root.children }];
++
++    function currentFrame() {
++      return stack[stack.length - 1];
++    }
++
++    for (const token of tokens) {
++      if (token.type === "text") {
++        currentFrame().children.push({ type: "text", value: token.value });
++        continue;
++      }
++
++      const body = token.value;
++      if (!body) {
++        continue;
++      }
++      const firstSpace = body.indexOf(" ");
++      const keyword = (firstSpace === -1 ? body : body.slice(0, firstSpace)).trim();
++      const argString = firstSpace === -1 ? "" : body.slice(firstSpace + 1).trim();
++
++      if (keyword.startsWith("/")) {
++        const closing = keyword.slice(1);
++        if (closing === "if" || closing === "for") {
++          stack.pop();
++        }
++        continue;
++      }
++
++      switch (keyword) {
++        case "if": {
++          const node = { type: "if", branches: [{ condition: argString, children: [] }] };
++          currentFrame().children.push(node);
++          stack.push({ node, children: node.branches[0].children });
++          break;
++        }
++        case "elseif": {
++          const frame = currentFrame();
++          if (frame.node && frame.node.type === "if") {
++            const branch = { condition: argString, children: [] };
++            frame.node.branches.push(branch);
++            frame.children = branch.children;
++          }
++          break;
++        }
++        case "else": {
++          const frame = currentFrame();
++          if (frame.node && frame.node.type === "if") {
++            const branch = { condition: null, children: [] };
++            frame.node.branches.push(branch);
++            frame.children = branch.children;
++          }
++          break;
++        }
++        case "for": {
++          const node = { type: "for", expression: argString, children: [], variable: null };
++          const match = argString.match(/^(\S+)\s+over\s+(.+)$/i);
++          if (match) {
++            node.variable = match[1];
++            node.expression = match[2];
++          }
++          currentFrame().children.push(node);
++          stack.push({ node, children: node.children });
++          break;
++        }
++        case "set": {
++          currentFrame().children.push({ type: "set", code: argString });
++          break;
++        }
++        case "print": {
++          currentFrame().children.push({ type: "print", expression: argString });
++          break;
++        }
++        case "display": {
++          currentFrame().children.push({ type: "display", target: argString });
++          break;
++        }
++        case "choice": {
++          currentFrame().children.push(parseChoiceMacro(argString));
++          break;
++        }
++        case "timer": {
++          currentFrame().children.push(parseTimerMacro(argString));
++          break;
++        }
++        case "remember": {
++          currentFrame().children.push({ type: "remember", expression: argString });
++          break;
++        }
++        case "log": {
++          currentFrame().children.push({ type: "log", expression: argString });
++          break;
++        }
++        case "meter": {
++          currentFrame().children.push(parseMeterMacro(argString));
++          break;
++        }
++        default: {
++          currentFrame().children.push({ type: "unknown", name: keyword, body: argString });
++          break;
++        }
++      }
++    }
++
++    return root.children;
++  }
++
++  function parseChoiceMacro(args) {
++    const pattern = /^"([^"]+)"\s*(?:->|=>|\|)\s*"([^"]+)"\s*(?:\[([^\]]+)\])?\s*(?:\{([^}]+)\})?$/;
++    const match = args.match(pattern);
++    if (!match) {
++      return { type: "unknown", name: "choice", body: args };
++    }
++    return {
++      type: "choice",
++      textExpr: JSON.stringify(match[1]),
++      targetExpr: JSON.stringify(match[2]),
++      condition: match[3] || null,
++      action: match[4] || null
++    };
++  }
++
++  function parseTimerMacro(args) {
++    const pattern = /^(.+?)(?:->|\|)\s*"([^"]+)"\s*(?:\{([^}]+)\})?$/;
++    const match = args.match(pattern);
++    if (!match) {
++      return { type: "unknown", name: "timer", body: args };
++    }
++    return {
++      type: "timer",
++      delay: match[1].trim(),
++      targetExpr: JSON.stringify(match[2]),
++      action: match[3] || null
++    };
++  }
++
++  function parseMeterMacro(args) {
++    const options = {};
++    const regex = /(\w+):("[^"]*"|'[^']*'|\S+)/g;
++    let match;
++    while ((match = regex.exec(args)) !== null) {
++      const key = match[1];
++      let value = match[2];
++      if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
++        value = value.slice(1, -1);
++        options[key] = JSON.stringify(value);
++      } else {
++        options[key] = value;
++      }
++    }
++    if (!options.value) {
++      options.value = args || "0";
++    }
++    return {
++      type: "meter",
++      options
++    };
++  }
++
++  function compilePassage(element) {
++    const name = element.getAttribute("name");
++    const tags = (element.getAttribute("tags") || "")
++      .split(/\s+/)
++      .map(tag => tag.trim())
++      .filter(Boolean);
++    let metadata = {};
++    const metadataRaw = element.getAttribute("metadata");
++    if (metadataRaw) {
++      try {
++        metadata = JSON.parse(metadataRaw);
++      } catch (error) {
++        pushLog(`Не удалось разобрать metadata для ${name}: ${error.message}`);
++      }
++    }
++    const source = element.textContent || "";
++    const tokens = tokenize(source);
++    const tree = parseTokens(tokens);
++    const links = extractLinks(source);
++    return {
++      name,
++      tags,
++      metadata,
++      source,
++      tree,
++      links
++    };
++  }
++
++  function extractLinks(content) {
++    const pattern = /\[\[(.+?)\]\]/g;
++    const result = new Set();
++    let match;
++    while ((match = pattern.exec(content)) !== null) {
++      const inner = match[1];
++      if (inner.includes("->")) {
++        result.add(inner.split("->").pop().trim());
++      } else if (inner.includes("|")) {
++        result.add(inner.split("|").pop().trim());
++      } else {
++        result.add(inner.trim());
++      }
++    }
++    return Array.from(result);
++  }
++
++  compiledPassages = new Map(rawPassages.map(p => {
++    const compiled = compilePassage(p);
++    return [compiled.name, compiled];
++  }));
++
++  storyElement.remove();
++
++  const pendingTimers = [];
++  let activeTimers = [];
++
++  function clearTimers() {
++    activeTimers.forEach(id => clearTimeout(id));
++    activeTimers = [];
++    pendingTimers.length = 0;
++  }
++
++  function addHistoryEntry(passage) {
++    const entry = {
++      name: passage.name,
++      tags: passage.tags.slice(),
++      timestamp: Date.now(),
++      notes: []
++    };
++    state.history.push(entry);
++    if (state.history.length > 400) {
++      state.history.shift();
++    }
++    renderHistoryPanel();
++    schedulePersist();
++  }
++
++  function registerNote(text) {
++    if (!state.history.length) {
++      return;
++    }
++    const entry = state.history[state.history.length - 1];
++    entry.notes.push({
++      text: safeString(text),
++      timestamp: Date.now()
++    });
++    renderHistoryPanel();
++    schedulePersist();
++  }
++
++  function transformForStatement(expression) {
++    return expression
++      .replace(/\bis not\b/gi, " != ")
++      .replace(/\bis\b/gi, " = ")
++      .replace(/\bto\b/gi, " = ")
++      .replace(/\band\b/gi, " && ")
++      .replace(/\bor\b/gi, " || ");
++  }
++
++  function transformForExpression(expression) {
++    return expression
++      .replace(/\bis not\b/gi, " !== ")
++      .replace(/\bis\b/gi, " === ")
++      .replace(/\band\b/gi, " && ")
++      .replace(/\bor\b/gi, " || ");
++  }
++
++  function executeCode(code, locals = {}) {
++    if (!code) {
++      return;
++    }
++    const statement = transformForStatement(code);
++    try {
++      const fn = new Function("state", "locals", "util", "vars", `with(util){with(vars){with(locals){${statement};}}}`);
++      fn(state, locals, util, varsProxy);
++    } catch (error) {
++      pushLog(`Ошибка в выражении: ${error.message}`);
++    }
++  }
++
++  function evaluateExpression(expression, locals = {}) {
++    if (!expression) {
++      return "";
++    }
++    const prepared = transformForExpression(expression);
++    try {
++      const fn = new Function("state", "locals", "util", "vars", `with(util){with(vars){with(locals){return (${prepared});}}}`);
++      return fn(state, locals, util, varsProxy);
++    } catch (error) {
++      pushLog(`Ошибка вычисления выражения "${expression}": ${error.message}`);
++      return "";
++    }
++  }
++
++  function interpolate(text, locals) {
++    return text.replace(/\{\{([^}]+)\}\}/g, (_, expr) => escapeHtml(safeString(evaluateExpression(expr.trim(), locals))));
++  }
++
++  function formatText(text, locals) {
++    if (!text) {
++      return "";
++    }
++    let output = interpolate(text, locals);
++    output = escapeHtml(output);
++    output = output
++      .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
++      .replace(/__([^_]+)__/g, "<span style=\"text-decoration:underline\">$1</span>")
++      .replace(/~~([^~]+)~~/g, "<del>$1</del>")
++      .replace(/`([^`]+)`/g, "<code>$1</code>")
++      .replace(/\/\/([^/]+)\/\//g, "<em>$1</em>");
++    output = output.replace(/\[\[(.+?)\]\]/g, (_, inner) => buildLink(inner.trim(), locals));
++    const paragraphs = output.split(/\n{2,}/).map(block => `<p>${block.replace(/\n/g, "<br>")}</p>`);
++    return paragraphs.join("");
++  }
++
++  function buildLink(inner, locals) {
++    let text = inner;
++    let target = inner;
++    if (inner.includes("->")) {
++      const [left, right] = inner.split("->");
++      text = left.trim();
++      target = right.trim();
++    } else if (inner.includes("|")) {
++      const [left, right] = inner.split("|");
++      text = left.trim();
++      target = right.trim();
++    }
++    const resolvedText = safeString(evaluateExpression(JSON.stringify(text), locals));
++    const resolvedTarget = safeString(evaluateExpression(JSON.stringify(target), locals));
++    return `<a href="#" class="nw-link" data-target="${escapeAttribute(resolvedTarget)}">${escapeHtml(resolvedText)}</a>`;
++  }
++
++  function renderNodes(nodes, locals = Object.create(null), depth = 0) {
++    let html = "";
++    for (const node of nodes) {
++      switch (node.type) {
++        case "text":
++          html += formatText(node.value, locals);
++          break;
++        case "set":
++          executeCode(node.code, locals);
++          break;
++        case "print": {
++          const value = safeString(evaluateExpression(node.expression, locals));
++          html += escapeHtml(value);
++          break;
++        }
++        case "if": {
++          for (const branch of node.branches) {
++            if (branch.condition === null || evaluateExpression(branch.condition, locals)) {
++              html += renderNodes(branch.children, locals, depth + 1);
++              break;
++            }
++          }
++          break;
++        }
++        case "for": {
++          const variable = node.variable || "$item";
++          const collection = evaluateExpression(node.expression, locals);
++          if (Array.isArray(collection)) {
++            collection.forEach((value, index) => {
++              const loopLocals = Object.create(locals);
++              loopLocals[variable] = value;
++              loopLocals.$index = index;
++              loopLocals.$length = collection.length;
++              html += renderNodes(node.children, loopLocals, depth + 1);
++            });
++          } else if (collection && typeof collection === "object") {
++            Object.keys(collection).forEach((key, index) => {
++              const loopLocals = Object.create(locals);
++              loopLocals[variable] = collection[key];
++              loopLocals.$key = key;
++              loopLocals.$value = collection[key];
++              loopLocals.$index = index;
++              html += renderNodes(node.children, loopLocals, depth + 1);
++            });
++          }
++          break;
++        }
++        case "display": {
++          const targetName = safeString(evaluateExpression(node.target, locals));
++          html += renderPassageContent(targetName, locals, depth + 1);
++          break;
++        }
++        case "choice": {
++          const show = node.condition ? Boolean(evaluateExpression(node.condition, locals)) : true;
++          if (!show) {
++            break;
++          }
++          const text = safeString(evaluateExpression(node.textExpr, locals));
++          const target = safeString(evaluateExpression(node.targetExpr, locals));
++          const data = [`data-target="${escapeAttribute(target)}"`];
++          if (node.action) {
++            data.push(`data-action="${escapeAttribute(encodeURIComponent(node.action))}"`);
++          }
++          html += `<button class="nw-choice" ${data.join(" ")}>${escapeHtml(text)}</button>`;
++          break;
++        }
++        case "timer": {
++          const delay = Number(evaluateExpression(node.delay, locals)) * 1000;
++          const target = safeString(evaluateExpression(node.targetExpr, locals));
++          const snapshot = cloneLocals(locals);
++          pendingTimers.push({
++            delay: Number.isFinite(delay) ? Math.max(0, delay) : 0,
++            target,
++            action: node.action,
++            locals: snapshot
++          });
++          break;
++        }
++        case "remember": {
++          const message = safeString(evaluateExpression(node.expression, locals));
++          if (message) {
++            registerNote(message);
++          }
++          break;
++        }
++        case "log": {
++          const message = safeString(evaluateExpression(node.expression, locals));
++          if (message) {
++            pushLog(message);
++          }
++          break;
++        }
++        case "meter": {
++          html += renderMeter(node.options, locals);
++          break;
++        }
++        case "unknown": {
++          pushLog(`Неизвестный макрос <<${node.name}>>`);
++          break;
++        }
++        default:
++          break;
++      }
++    }
++    return html;
++  }
++
++  function renderMeter(options, locals) {
++    const valueExpr = options.value || "0";
++    const labelExpr = options.label || null;
++    const minExpr = options.min || "0";
++    const maxExpr = options.max || "100";
++    const accentExpr = options.accent || null;
++    const value = Number(evaluateExpression(valueExpr, locals));
++    const min = Number(evaluateExpression(minExpr, locals));
++    const max = Number(evaluateExpression(maxExpr, locals));
++    const clamped = util.clamp(Number.isFinite(value) ? value : 0, Number.isFinite(min) ? min : 0, Number.isFinite(max) ? max : 100);
++    const percent = max === min ? 0 : ((clamped - min) / (max - min)) * 100;
++    const label = labelExpr ? safeString(evaluateExpression(labelExpr, locals)) : null;
++    const accent = accentExpr ? safeString(evaluateExpression(accentExpr, locals)) : null;
++    const style = accent ? ` style="--nw-meter-accent:${escapeAttribute(accent)}"` : "";
++    return `<div class="nw-meter"${style}><div class="nw-meter-label"><span>${label ? escapeHtml(label) : ""}</span><span>${clamped}/${max}</span></div><div class="nw-meter-bar"><span class="nw-meter-fill" style="width:${Math.max(0, Math.min(100, percent)).toFixed(2)}%"></span></div></div>`;
++  }
++
++  function renderPassageContent(name, locals = Object.create(null), depth = 0) {
++    if (depth > 12) {
++      return `<div class="nw-warning">Слишком глубокая вложенность вывода для ${escapeHtml(name)}.</div>`;
++    }
++    const passage = compiledPassages.get(name);
++    if (!passage) {
++      pushLog(`Переход к неизвестному пассажу ${name}`);
++      return `<div class="nw-warning">Пассаж "${escapeHtml(name)}" не найден.</div>`;
++    }
++    return renderNodes(passage.tree, locals, depth + 1);
++  }
++
++  function attachInteractiveHandlers() {
++    main.querySelectorAll('[data-target]').forEach(element => {
++      element.addEventListener('click', event => {
++        event.preventDefault();
++        const target = element.getAttribute('data-target');
++        const action = element.getAttribute('data-action');
++        if (action) {
++          executeCode(decodeURIComponent(action));
++        }
++        if (target) {
++          showPassage(target);
++        }
++      });
++    });
++  }
++
++  function updatePalette(metadata) {
++    if (!metadata || typeof metadata.palette !== 'object') {
++      paletteKeys.forEach(key => {
++        document.documentElement.style.removeProperty(`--nw-${key}`);
++      });
++      paletteKeys.clear();
++      return;
++    }
++    const entries = Object.entries(metadata.palette);
++    paletteKeys.forEach(key => {
++      document.documentElement.style.removeProperty(`--nw-${key}`);
++    });
++    paletteKeys = new Set(entries.map(([key]) => key));
++    entries.forEach(([key, value]) => {
++      document.documentElement.style.setProperty(`--nw-${key}`, value);
++    });
++  }
++
++  function applyPassageAtmosphere(passage) {
++    if (passage.tags.length) {
++      document.body.setAttribute('data-passage-tags', passage.tags.join(' '));
++    } else {
++      document.body.removeAttribute('data-passage-tags');
++    }
++    updatePalette(passage.metadata);
++  }
++
++  function showPassage(name, options = {}) {
++    const passage = compiledPassages.get(name);
++    if (!passage) {
++      pushLog(`Попытка открыть неизвестный пассаж "${name}"`);
++      main.innerHTML = `<article class="nw-passage"><div class="nw-warning">Пассаж "${escapeHtml(name)}" не найден.</div></article>`;
++      return;
++    }
++
++    clearTimers();
++    state.current = name;
++    applyPassageAtmosphere(passage);
++    const content = renderPassageContent(name);
++    main.innerHTML = `<article class="nw-passage" data-passage="${escapeAttribute(name)}">${content}</article>`;
++    attachInteractiveHandlers();
++    runPendingTimers();
++    if (!options.silent) {
++      addHistoryEntry(passage);
++      pushLog(`Открыт пассаж "${name}"`);
++    }
++    schedulePersist();
++  }
++
++  function runPendingTimers() {
++    pendingTimers.forEach(timer => {
++      const id = setTimeout(() => {
++        if (timer.action) {
++          executeCode(timer.action, timer.locals);
++        }
++        showPassage(timer.target);
++      }, timer.delay);
++      activeTimers.push(id);
++    });
++    pendingTimers.length = 0;
++  }
++
++  function renderHistoryPanel() {
++    if (!historyContainer) {
++      return;
++    }
++    if (!state.history.length) {
++      historyContainer.innerHTML = '<p class="nw-empty">История ещё не записана.</p>';
++      return;
++    }
++    historyContainer.innerHTML = state.history
++      .map(entry => {
++        const timestamp = new Date(entry.timestamp);
++        const tags = entry.tags.length ? `<div>${entry.tags.map(tag => `<span class="nw-tag">#${escapeHtml(tag)}</span>`).join('')}</div>` : '';
++        const notes = entry.notes.map(note => `<div class="nw-note">${escapeHtml(note.text)} <time>${escapeHtml(util.time(note.timestamp))}</time></div>`).join('');
++        return `<article class="nw-history-entry"><header><strong>${escapeHtml(entry.name)}</strong> · <time>${escapeHtml(timestamp.toLocaleString())}</time></header>${tags}${notes}</article>`;
++      })
++      .join('');
++  }
++
++  function renderStatePanel() {
++    if (!stateContainer) {
++      return;
++    }
++    const keys = Object.keys(rawVars).sort();
++    if (!keys.length) {
++      stateContainer.innerHTML = '<p class="nw-empty">Переменные не установлены.</p>';
++      return;
++    }
++    stateContainer.innerHTML = keys
++      .map(key => `<div class="nw-state-entry"><span>${escapeHtml(key)}</span><span>${escapeHtml(JSON.stringify(rawVars[key]))}</span></div>`)
++      .join('');
++  }
++
++  function snapshotVars() {
++    const plain = {};
++    Object.keys(rawVars).forEach(key => {
++      plain[key] = rawVars[key];
++    });
++    return plain;
++  }
++
++  function serializeState() {
++    return {
++      vars: snapshotVars(),
++      history: state.history,
++      current: state.current,
++      timestamp: Date.now()
++    };
++  }
++
++  function persistState() {
++    try {
++      const snapshot = serializeState();
++      localStorage.setItem(storageKey, JSON.stringify(snapshot));
++    } catch (error) {
++      pushLog(`Не удалось сохранить состояние: ${error.message}`);
++    }
++  }
++
++  function loadState() {
++    try {
++      const raw = localStorage.getItem(storageKey);
++      if (!raw) {
++        return null;
++      }
++      return JSON.parse(raw);
++    } catch (error) {
++      pushLog(`Не удалось загрузить состояние: ${error.message}`);
++      return null;
++    }
++  }
++
++  function restoreState(snapshot) {
++    if (!snapshot) {
++      return false;
++    }
++    Object.keys(rawVars).forEach(key => delete rawVars[key]);
++    Object.assign(rawVars, snapshot.vars || {});
++    state.history = Array.isArray(snapshot.history) ? snapshot.history : [];
++    state.current = snapshot.current || null;
++    renderStatePanel();
++    renderHistoryPanel();
++    return true;
++  }
++
++  function resetState() {
++    Object.keys(rawVars).forEach(key => delete rawVars[key]);
++    state.history = [];
++    state.current = null;
++    renderStatePanel();
++    renderHistoryPanel();
++    persistState();
++  }
++
++  function activatePanel(name) {
++    app.querySelectorAll('.nw-button[data-panel]').forEach(button => {
++      const active = button.getAttribute('data-panel') === name;
++      button.setAttribute('data-active', active ? 'true' : 'false');
++    });
++    app.querySelectorAll('.nw-panel').forEach(panel => {
++      const match = panel.getAttribute('data-panel-name') === name;
++      panel.hidden = !match;
++    });
++  }
++
++  app.querySelectorAll('.nw-button[data-panel]').forEach(button => {
++    button.addEventListener('click', () => {
++      const panelName = button.getAttribute('data-panel');
++      const isActive = button.getAttribute('data-active') === 'true';
++      activatePanel(isActive ? '' : panelName);
++      if (!isActive) {
++        renderStatePanel();
++        renderHistoryPanel();
++        renderLog();
++      }
++    });
++  });
++
++  const restartButton = app.querySelector('.nw-button[data-action="restart"]');
++  if (restartButton) {
++    restartButton.addEventListener('click', () => {
++      if (confirm('Сбросить состояние истории?')) {
++        clearTimers();
++        resetState();
++        localStorage.removeItem(storageKey);
++        showPassage(startPassageName, { silent: true });
++        addHistoryEntry(compiledPassages.get(startPassageName));
++        pushLog('История перезапущена.');
++      }
++    });
++  }
++
++  window.addEventListener('keydown', event => {
++    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') {
++      event.preventDefault();
++      persistState();
++      pushLog('Состояние сохранено вручную.');
++    }
++  });
++
++  const savedState = loadState();
++  let initialPassage = startPassageName;
++  if (savedState && restoreState(savedState) && savedState.current && compiledPassages.has(savedState.current)) {
++    initialPassage = savedState.current;
++    pushLog('Загружено сохранённое состояние.');
++  }
++
++  loader.remove();
++  app.hidden = false;
++  app.focus?.();
++
++  showPassage(initialPassage, { silent: true });
++  addHistoryEntry(compiledPassages.get(initialPassage));
++  pushLog(`Инициализировано ${formatName} ${formatVersion}.`);
++
++  window.NovaWeave = Object.freeze({
++    version: "1.0.0",
++    state,
++    show: showPassage,
++    evaluate: expression => evaluateExpression(expression),
++    util
++  });
++})();
++</script>
++<script id="story-user-script">
++{{STORY_JAVASCRIPT}}
++</script>
++</body>
++</html>
+\ No newline at end of file
